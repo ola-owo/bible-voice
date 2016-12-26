@@ -1,0 +1,23 @@
+{
+  "name": "bible-voice",
+  "version": "1.0.0",
+  "description": "webhook server for bible voice search app",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/technoto/bible-voice.git"
+  },
+  "keywords": [
+    "bible",
+    "voice"
+  ],
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/technoto/bible-voice/issues"
+  },
+  "homepage": "https://github.com/technoto/bible-voice#readme"
+}
