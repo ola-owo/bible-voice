@@ -101,8 +101,8 @@ app.post('/lookup', function(req,res){
 
     output.fulfillment.speech = bibleText;
     output.fulfillment.displayText = book + ' ' + chapter + ':' + verse + '\n' + bibleText;
-    output.fulfillment.data = {};
-    output.fulfillment.contextOut = [{"book": book, "chapter": chapter, "verse": verse}];
+//    output.fulfillment.data = {};
+//    output.fulfillment.contextOut = [{"book": book, "chapter": chapter, "verse": verse}];
     output.fulfillment.source = 'English Standard Version';
     res.end(JSON.stringify(output));
   });
