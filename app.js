@@ -100,6 +100,10 @@ app.post('/lookup', function(req,res){
       console.log('Verse not found!');
       res.status(404).send('not found');
     } else {
+      if(!row){
+        res.status(404).send('not found!');
+        res.end();
+      }
       bibleText = row.unformatted;
       console.log('BibleText: ' + bibleText);
 
