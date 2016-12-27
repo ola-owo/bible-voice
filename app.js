@@ -85,7 +85,7 @@ app.post('/lookup', function(req,res){
       chapter = req.body.result.parameters.chapter,
       verse = req.body.result.parameters.verse;
 
-  var output = {};
+  var output = {'fulfillment': {}};
 
   // Search database & get bible verse
   var bibleText = '';
@@ -99,11 +99,11 @@ app.post('/lookup', function(req,res){
     bibleText = row.unformatted;
     console.log('BibleText: ' + bibleText);
 
-    output.speech = bibleText;
-    output.displayText = book + ' ' + chapter + ':' + verse + '\n' + bibleText;
-    output.data = {};
-    output.contextOut = [{"book": book, "chapter": chapter, "verse": verse}];
-    output.source = 'English Standard Version';
+    output.fulfillment.speech = bibleText;
+    output.fulfillment.displayText = book + ' ' + chapter + ':' + verse + '\n' + bibleText;
+    output.fulfillment.data = {};
+    output.fulfillment.contextOut = [{"book": book, "chapter": chapter, "verse": verse}];
+    output.fulfillment.source = 'English Standard Version';
     res.end(JSON.stringify(output));
   });
 });
