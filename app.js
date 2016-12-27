@@ -99,18 +99,19 @@ app.post('/lookup', function(req,res){
     if(err != null){
       console.log('Verse not found!');
       res.status(404).send('not found');
-    } else {
-      if(!row){
+    }else{
+      if(!row || row == undefined){
         res.status(404).send('not found!');
         res.end();
-      }
-      bibleText = row.unformatted;
-      console.log('BibleText: ' + bibleText);
+      }else{
+        bibleText = row.unformatted;
+        console.log('BibleText: ' + bibleText);
 
-      output.speech = bibleText;
-      output.displayText = book + ' ' + chapter + ':' + verse + '\n' + bibleText;
-      output.source = 'English Standard Version';
-      res.send(JSON.stringify(output));
+        output.speech = bibleText;
+        output.displayText = book + ' ' + chapter + ':' + verse + '\n' + bibleText;
+        output.source = 'English Standard Version';
+        res.send(JSON.stringify(output));
+      }
     }
   });
 });
