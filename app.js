@@ -104,7 +104,7 @@ app.post('/lookup', function(req,res){
 //    output.fulfillment.data = {};
 //    output.fulfillment.contextOut = [{"book": book, "chapter": chapter, "verse": verse}];
     output.fulfillment.source = 'English Standard Version';
-    res.end(JSON.stringify(output));
+    res.send(JSON.stringify(output));
   });
 });
 
