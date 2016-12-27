@@ -96,15 +96,18 @@ app.post('/lookup', function(req,res){
     $chapverse: chapverse
   });
   stmt.get([], function(err,row){
-    bibleText = row.unformatted;
-    console.log('BibleText: ' + bibleText);
+    if(err != null){
+      console.log('Verse not found!');
+      res.status(404).send('not found');
+    } else {
+      bibleText = row.unformatted;
+      console.log('BibleText: ' + bibleText);
 
-    output.speech = bibleText;
-    output.displayText = book + ' ' + chapter + ':' + verse + '\n' + bibleText;
-//    output.data = {};
-//    output.contextOut = [{"book": book, "chapter": chapter, "verse": verse}];
-    output.source = 'English Standard Version';
-    res.send(JSON.stringify(output));
+      output.speech = bibleText;
+      output.displayText = book + ' ' + chapter + ':' + verse + '\n' + bibleText;
+      output.source = 'English Standard Version';
+      res.send(JSON.stringify(output));
+    }
   });
 });
 
