@@ -66,7 +66,8 @@ app.get('/lookup', function(req,res){
   var bibleText = '';
   var chapverse = getChapVerse(chapter, verse);
   console.log("chapverse: " + chapverse);
-  var stmt = db.prepare('SELECT * FROM verses WHERE book = $book AND verse = $chapverse;', {
+  var stmt = db.prepare(
+    'SELECT * FROM verses WHERE book = $book AND verse = $chapverse COLLATE NOCASE;', {
     $book: book,
     $chapverse: chapverse
   });
@@ -91,7 +92,8 @@ app.post('/lookup', function(req,res){
   var bibleText = '';
   var chapverse = getChapVerse(chapter, verse);
   console.log("chapverse: " + chapverse);
-  var stmt = db.prepare('SELECT * FROM verses WHERE book = $book AND verse = $chapverse;', {
+  var stmt = db.prepare(
+    'SELECT * FROM verses WHERE book = $book AND verse = $chapverse COLLATE NOCASE;', {
     $book: book,
     $chapverse: chapverse
   });
