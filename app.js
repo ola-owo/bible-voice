@@ -76,6 +76,7 @@ app.post('/lookup', function(req,res){
 	});
 });
 
-app.listen(8000, function(){
-	console.log('App listening on port 8000');
+var port = process.env.PORT || 8000;
+app.listen(port, function(){
+	console.log('App.js listening on port ' + port);
 });
