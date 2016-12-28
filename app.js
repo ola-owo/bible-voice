@@ -1,5 +1,6 @@
 var sqlite3 = require('sqlite3').verbose();
 var exp = require('express');
+var path = require('path');
 var app = exp();
 var bodyParser = require('body-parser');
 app.use(bodyParser.json());
@@ -21,15 +22,7 @@ function getChapVerse(chap,verse){
 
 
 app.get('/', function(req,res){
-  res.write('<html><body>');
-  res.write('<form method="post" action="/">');
-  res.write('Book <input type="text" name="book"><br>');
-  res.write('Chapter <input type="text" name="chapter"><br>');
-  res.write('Verse <input type="text" name="verse"><br>');
-  res.write('<button type="submit">Go</button>');
-  res.write('</form>');
-  res.write('</body></html>');
-  res.end();
+  res.sendFile(path.join(__dirname+'/index.html'));
 });
 
 app.post('/', function(req,res){
