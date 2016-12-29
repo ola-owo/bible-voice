@@ -6,8 +6,8 @@ var bodyParser = require('body-parser');
 app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({ extended: true }));
 
-var db = new sqlite3.cached.Database('esv.sqlite3', sqlite3.OPEN_READONLY);
-
+var db = new sqlite3.Database('esv.sqlite3', sqlite3.OPEN_READONLY);
+db.on('trace', function(sql){console.log(sql)});
 function getChapVerse(chap,verse){
   // Convert chapter/verse to REAL
   var chap_verse = chap + ".";
@@ -31,6 +31,7 @@ function dbSearch(book,chapter,verse,res,outputFunc){
     $chapverse: chapverse
   });
 
+  console.log(stmt);
   stmt.get([],function(err,row){
     if(err){ // DB search error
       console.log('Verse not found!');
@@ -103,13 +104,16 @@ app.get('/lookup', function(req,res){
 app.post('/lookup', function(req,res){
   // For the API.ai program
   res.type('json');  
+  console.log('result: ' + JSON.stringify(req.body.result));
   if(req.body.result.action === 'num_chapters'){ // count # chapters in book
     var book_abbr = req.body.result.parameters.book;
 
     var num_chapters, book;
+    console.log('book_abbr: '+book_abbr);
+
     var stmt = db.prepare(
-      'SELECT * FROM num_chapters WHERE book_abbr = $book_abbr COLLATE NOCASE;',
-      { $book_abbr: book_abbr }
+      'SELECT * FROM num_chapters WHERE book_abbr = ? COLLATE NOCASE',
+      book_abbr
     );
 
     stmt.get([],function(err,row){
@@ -118,7 +122,9 @@ app.post('/lookup', function(req,res){
         res.status(404).send('Error: Search failed.');
         res.end()
       }else{
+        console.log('row: '+row);
         if(!row){ // DB returns no results
+          console.log('no DB results for num_chapters');
           res.status(404).send('Error: Not found.');
           res.end();
         }else{
@@ -139,7 +145,7 @@ app.post('/lookup', function(req,res){
       }
     });
 
-  }else if(req.body.result.action === 'read'){ // read single verse
+  }else{ // if(req.body.result.action === 'read'){ // read single verse
     var book = req.body.result.parameters.book,
         chapter = req.body.result.parameters.chapter,
         verse = req.body.result.parameters.verse;
