@@ -1,6 +1,2 @@
 /node_modules
-*.swp
 *.env
-/node_modules
-npm-debug.log
-*.old
