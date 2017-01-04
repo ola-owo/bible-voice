@@ -1,4 +1,4 @@
-var sqlite3 = require('sqlite3').verbose();
+var sqlite3 = require('sqlite3');
 var exp = require('express');
 var path = require('path');
 var app = exp();
@@ -10,9 +10,6 @@ app.use(bodyParser.urlencoded({
 app.use(exp.static('static'));
 
 var db = new sqlite3.Database('esv.sqlite3', sqlite3.OPEN_READONLY);
-db.on('trace', function(sql) {
-  console.log(sql)
-});
 
 function getChapVerse(chap, verse) {
   // Convert chapter/verse to REAL
@@ -26,29 +23,37 @@ function getChapVerse(chap, verse) {
   return parseFloat(chap_verse);
 }
 
-function dbSearch(book, chapter, verse, res, outputFunc) {
+function dbSearch(book, chapter, startVerse, res, outputFunc, endVerse) {
   // Prepares DB search statement
   var bibleText = '';
-  var chapverse = getChapVerse(chapter, verse);
-  console.log("chapverse: " + chapverse);
-  var stmt = db.prepare(
-    'SELECT * FROM verses WHERE book = $book AND verse = $chapverse COLLATE NOCASE;', {
-      $book: book,
-      $chapverse: chapverse
-    });
-
+  var chapverse_start = getChapVerse(chapter, startVerse);
+  if (endVerse) { // read a range of verses instead of just 1
+    var chapverse_end = getChapVerse(chapter, endVerse);
+    var stmt = db.prepare(
+      'SELECT * FROM verses WHERE book = $book COLLATE NOCASE AND verse BETWEEN $startverse AND $endverse', {
+        $book: book,
+        $startverse: chapverse_start,
+        $endverse: chapverse_end
+      });
+  } else { // 1 verse only
+    var stmt = db.prepare(
+      'SELECT * FROM verses WHERE book = $book COLLATE NOCASE AND verse = $chapverse', {
+        $book: book,
+        $chapverse: chapverse_start
+      });
+  }
   console.log(stmt);
-  stmt.get([], function(err, row) {
+  stmt.all([], function(err, rows) {
     if (err) { // DB search error
       console.log('Verse not found!');
       res.status(404).send('Error: Verse search failed.');
       res.end()
     } else {
-      if (!row) { // DB returns no results
+      if (!rows) { // DB returns no results
         res.status(404).send('Error: Verse not found.');
         res.end();
       } else {
-        outputFunc(res, row, book, chapter, verse);
+        outputFunc(res, rows, book, chapter, startVerse, endVerse);
       }
     }
   });
@@ -59,7 +64,7 @@ function dbSearch(book, chapter, verse, res, outputFunc) {
   INDEX PAGE
 */
 function output_index(res, row, book, chapter, verse) {
-  var bibleText = row.unformatted;
+  var bibleText = row[0].unformatted;
   res.write("<h1>" + book + " " + chapter + ":" + verse + "</h1><br>")
   res.write("<p>" + bibleText + "</p>");
   res.write('<a href="/">Go back</a>');
@@ -80,13 +85,19 @@ app.post('/', function(req, res) {
 /*
   LOOKUP PAGE
 */
-function output_lookup(res, row, book, chapter, verse) {
+function output_lookup(res, rows, book, chapter, startVerse, endVerse) {
   var output = {};
-  bibleText = row.unformatted;
-  console.log('BibleText: ' + bibleText);
-
+  if (rows.length === 1) {
+    bibleText = rows[0].unformatted;
+    output.displayText = book + ' ' + chapter + ':' + startVerse + '\n' + bibleText;
+  } else {
+    bibleText = rows.map(function(i) {
+      return i.unformatted;
+    }).join('\n');
+    console.log('BibleText: ' + bibleText);
+    output.displayText = book + ' ' + chapter + ':' + startVerse + '-' + endVerse + '\n' + bibleText;
+  }
   output.speech = bibleText;
-  output.displayText = book + ' ' + chapter + ':' + verse + '\n' + bibleText;
   output.source = 'English Standard Version';
   res.send(JSON.stringify(output));
   res.end();
@@ -105,7 +116,6 @@ app.get('/lookup', function(req, res) {
 app.post('/lookup', function(req, res) {
   // For the API.ai program
   res.type('json');
-  console.log('result: ' + JSON.stringify(req.body.result));
   if (req.body.result.action === 'num_chapters') { // count # chapters in book
     var book_abbr = req.body.result.parameters.book;
 
@@ -146,7 +156,14 @@ app.post('/lookup', function(req, res) {
       }
     });
 
-  } else { // if(req.body.result.action === 'read'){ // read single verse
+  } else if (req.body.result.action === 'read_multiple') { // read multiple verses
+    var book = req.body.result.parameters.book,
+      chapter = req.body.result.parameters.chapter,
+      startVerse = req.body.result.parameters.startverse,
+      endVerse = req.body.result.parameters.endverse;
+
+    dbSearch(book, chapter, startVerse, res, output_lookup, endVerse);
+  } else { // if(req.body.result.action === 'read'){ // read verse
     var book = req.body.result.parameters.book,
       chapter = req.body.result.parameters.chapter,
       verse = req.body.result.parameters.verse;
