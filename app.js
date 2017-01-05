@@ -42,7 +42,6 @@ function dbSearch(book, chapter, startVerse, res, outputFunc, endVerse) {
         $chapverse: chapverse_start
       });
   }
-  console.log(stmt);
   stmt.all([], function(err, rows) {
     if (err) { // DB search error
       console.log('Verse not found!');
@@ -116,9 +115,10 @@ app.get('/lookup', function(req, res) {
 app.post('/lookup', function(req, res) {
   // For the API.ai program
   res.type('json');
+  console.log('Action: ' + req.body.result.action);
+
   if (req.body.result.action === 'num_chapters') { // count # chapters in book
     var book_abbr = req.body.result.parameters.book;
-
     var num_chapters, book;
     console.log('book_abbr: ' + book_abbr);
 
@@ -133,7 +133,6 @@ app.post('/lookup', function(req, res) {
         res.status(404).send('Error: Search failed.');
         res.end()
       } else {
-        console.log('row: ' + row);
         if (!row) { // DB returns no results
           console.log('no DB results for num_chapters');
           res.status(404).send('Error: Not found.');
@@ -162,12 +161,14 @@ app.post('/lookup', function(req, res) {
       startVerse = req.body.result.parameters.startverse,
       endVerse = req.body.result.parameters.endverse;
 
+    console.log('Passage: ' + book + ' ' + chapter + ':' + startVerse + '-' + endVerse);
     dbSearch(book, chapter, startVerse, res, output_lookup, endVerse);
   } else { // if(req.body.result.action === 'read'){ // read verse
     var book = req.body.result.parameters.book,
       chapter = req.body.result.parameters.chapter,
       verse = req.body.result.parameters.verse;
 
+    console.log('Passage: ' + book + ' ' + chapter + ':' + verse);
     dbSearch(book, chapter, verse, res, output_lookup);
   }
 });
